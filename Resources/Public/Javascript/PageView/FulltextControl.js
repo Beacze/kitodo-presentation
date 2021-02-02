@@ -344,6 +344,7 @@ dlfViewerFullTextControl.prototype.addHighlightEffect = function(textlineFeature
         
         if (targetElem.length > 0 && !targetElem.hasClass('highlight')) {
             targetElem.addClass('highlight');
+            console.log("wait to scroll to " + textlineFeature.getId())
             setTimeout(this.scrollToText, 1000, targetElem, this.fullTextScrollElement);
             hoverSourceTextline_.addFeature(textlineFeature);
         }
@@ -357,6 +358,7 @@ dlfViewerFullTextControl.prototype.addHighlightEffect = function(textlineFeature
  */
 dlfViewerFullTextControl.prototype.scrollToText = function(element, fullTextScrollElement) {
     if (element.hasClass('highlight')) {
+        console.log("scroll to " + fullTextScrollElement)
         $(fullTextScrollElement).animate({
             scrollTop: element.offset().top
         }, 500);
