@@ -1157,4 +1157,4 @@ This plugin adds an possibility to search all appearances of the phrase in curre
    :Data Type:
        :ref:`t3tsref:data-type-string`
    :Default:
-       tx_dlf[encrypted]
+       tx_dlf[encrypted]            
