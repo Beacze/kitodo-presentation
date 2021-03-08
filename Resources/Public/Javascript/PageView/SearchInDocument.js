@@ -259,6 +259,20 @@ function clearSearch() {
     $('#tx-dlf-search-in-document-query').val('');
 }
 
+function triggerSearchAfterHitLoad() {
+    var queryParams = getCurrentQueryParams(getBaseUrl(" "));
+
+    for(var i = 0; i < queryParams.length; i++) {
+        var queryParam = queryParams[i].split('=');
+
+        if(queryParam[0].indexOf($("input[id='tx-dlf-search-in-document-highlight-word']").attr('name')) != -1) {
+            $("input[id='tx-dlf-search-in-document-query']").val(queryParam[1]);
+            search();
+            break;
+        }
+    }
+}
+
 $(document).ready(function() {
     document.getElementById('tx-dlf-search-in-document-query').addEventListener("keydown", function (e) {
         if (e.key === 'Enter') {
@@ -266,4 +280,6 @@ $(document).ready(function() {
             search();
         }
     });
+
+    triggerSearchAfterHitLoad()
 });
