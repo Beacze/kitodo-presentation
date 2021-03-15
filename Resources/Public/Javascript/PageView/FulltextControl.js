@@ -123,6 +123,24 @@ var dlfViewerFullTextControl = function(map, image, fulltextUrl) {
     this.selectedFeature_ = undefined;
 
     /**
+     * @type {Array}
+     * @private
+     */
+	this.positions = {};
+
+    /**
+     * @type {any}
+     * @private
+     */
+    this.element = undefined;
+
+    /**
+     * @type {string}
+     * @private
+     */
+	this.lastHeight;
+
+    /**
      * @type {Object}
      * @private
      */
@@ -189,7 +207,7 @@ var dlfViewerFullTextControl = function(map, image, fulltextUrl) {
 };
 
 /**
- * Add active / deactive behavior in case of click on control depending if the full text should be activated initially.
+ * Add active / inactive behavior in case of click on control depending if the full text should be activated initially.
  */
 dlfViewerFullTextControl.prototype.changeActiveBehaviour = function() {
     if (this.activateFullTextInitially === 1) {
@@ -254,6 +272,25 @@ dlfViewerFullTextControl.prototype.addActiveBehaviourForSwitchOff = function() {
     if (dlfUtils.getCookie("tx-dlf-pageview-fulltext-select") === 'enabled') {
         // activate the fulltext behavior
         this.activate();
+    }
+};
+
+dlfViewerFullTextControl.prototype.onResize = function() {
+    if (this.element != undefined && this.element.css('width') != this.lastHeight) {
+        this.lastHeight = this.element.css('width');
+        this.calculatePositions();
+    }
+};
+
+dlfViewerFullTextControl.prototype.calculatePositions = function() {
+    this.positions.length = 0;
+
+    let texts = $('#tx-dlf-fulltextselection').children('span.textline');
+    let offset = $('#' + texts[0].id).position().top;
+
+    for(let text of texts) {
+        let pos = $('#' + text.id).position().top;
+        this.positions[text.id] = pos - offset;
     }
 };
 
@@ -344,7 +381,8 @@ dlfViewerFullTextControl.prototype.addHighlightEffect = function(textlineFeature
         
         if (targetElem.length > 0 && !targetElem.hasClass('highlight')) {
             targetElem.addClass('highlight');
-            setTimeout(this.scrollToText, 1000, targetElem, this.fullTextScrollElement);
+            this.onResize();
+            setTimeout(this.scrollToText, 1000, targetElem, this.fullTextScrollElement, this.positions);
             hoverSourceTextline_.addFeature(textlineFeature);
         }
     }
@@ -355,10 +393,10 @@ dlfViewerFullTextControl.prototype.addHighlightEffect = function(textlineFeature
  * @param {any} element 
  * @param {string} fullTextScrollElement
  */
-dlfViewerFullTextControl.prototype.scrollToText = function(element, fullTextScrollElement) {
+dlfViewerFullTextControl.prototype.scrollToText = function(element, fullTextScrollElement, positions) {
     if (element.hasClass('highlight')) {
         $(fullTextScrollElement).animate({
-            scrollTop: element.offset().top
+            scrollTop: positions[element[0].id]
         }, 500);
     }
 };
@@ -396,6 +434,10 @@ dlfViewerFullTextControl.prototype.activate = function() {
 
     // trigger event
     $(this).trigger("activate-fulltext", this);
+
+    if(this.element === undefined) {
+        this.element = $("#tx-dlf-fulltextselection");
+    }
 };
 
 /**
@@ -494,6 +536,7 @@ dlfViewerFullTextControl.prototype.showFulltext = function(features) {
             }
             $('#tx-dlf-fulltextselection').append('<br /><br />');
         }
+        this.calculatePositions();
     }
 };
 
