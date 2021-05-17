@@ -132,9 +132,6 @@ function getAllQueryParams(baseUrl, queryParams) {
  * @returns {array} array with params in form 'param' => 'value' 
  */
 function getNeededQueryParams(element) {
-    var searchWord = element['snippet'];
-    searchWord = searchWord.substring(searchWord.indexOf('<em>') + 4, searchWord.indexOf('</em>'));
-
     var id = $("input[id='tx-dlf-search-in-document-id']").attr('name');
     var highlightWord = $("input[id='tx-dlf-search-in-document-highlight-word']").attr('name');
     var page = $("input[id='tx-dlf-search-in-document-page']").attr('name');
@@ -146,11 +143,29 @@ function getNeededQueryParams(element) {
         queryParams[id] = element['uid'];
     }
     queryParams.push(highlightWord);
-    queryParams[highlightWord] = encodeURIComponent(searchWord);
+    queryParams[highlightWord] = encodeURIComponent($("input[id='tx-dlf-search-in-document-query']").val());
     queryParams.push(page);
     queryParams[page] = element['page'];
+    queryParams.push('hl');
+    queryParams['hl'] = encodeURIComponent(getHighlightWords(element['words']));
 
     return queryParams;
+}
+
+function getHighlightWords(text) {
+    var highlightWords = $("input[id='tx-dlf-search-in-document-query']").val();
+
+    for(var i = 0; i < text.length; i++) {
+        if (highlightWords === "") {
+            highlightWords += text[i];
+        } else {
+            if(highlightWords.indexOf(text[i]) === -1) {
+                highlightWords += ' ' + text[i];
+            }
+        }
+    }
+
+    return highlightWords;
 }
 
 /**
@@ -250,8 +265,36 @@ function search() {
         .done(function (data) {
             $('#tx-dfgviewer-sru-results-loading').hide();
             $('#tx-dfgviewer-sru-results-clearing').show();
+            addImageHighlightAfterFirstLoad(data);
         });
 }
+
+function addImageHighlightAfterFirstLoad(data) {
+    var queryParams = getCurrentQueryParams(getBaseUrl(" "));
+    var hlParameterFound = false;
+    for(var i = 0; i < queryParams.length; i++) {
+        var queryParam = queryParams[i].split('=');
+
+        if(queryParam[0] ==='hl') {
+            hlParameterFound = true;
+            break;
+        }
+    }
+
+    if(!hlParameterFound && data['numFound'] > 0) {
+        var highlightWords = [];
+        data['documents'].forEach(function (element, i) {
+            if (element['words'].length > 0) {
+                highlightWords.push(element['words']);
+            }
+        });
+
+        if(highlightWords.length > 0) {
+            tx_dlf_viewer.displayHighlightWord(encodeURIComponent(getHighlightWords(highlightWords)));
+        }
+    }
+}
+
 
 function clearSearch() {
     $('#tx-dlf-search-in-document-results ul').remove();
@@ -266,7 +309,11 @@ function triggerSearchAfterHitLoad() {
         var queryParam = queryParams[i].split('=');
 
         if(queryParam[0].indexOf($("input[id='tx-dlf-search-in-document-highlight-word']").attr('name')) != -1) {
-            $("input[id='tx-dlf-search-in-document-query']").val(queryParam[1]);
+            $("input[id='tx-dlf-search-in-document-query']").val(decodeURIComponent(queryParam[1]));
+            search();
+            break;
+        } else if(queryParam[0].indexOf('query') != -1) {
+            $("input[id='tx-dlf-search-in-document-query']").val(decodeURIComponent(queryParam[1]));
             search();
             break;
         }

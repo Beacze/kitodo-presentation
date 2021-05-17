@@ -218,6 +218,22 @@ class ResultDocument
     }
 
     /**
+     * Get all result's highlights' text of search phrase.
+     *
+     * @access public
+     *
+     * @return array(string) All result's highlights' text of search phrase
+     */
+    public function getHighlightsText()
+    {
+        $highlightsText = [];
+        foreach ($this->highlights as $highlight) {
+            array_push($highlightsText, $highlight->getText());
+        }
+        return $highlightsText;
+    }
+
+    /**
      * Parse snippets array to string for displaying purpose.
      * Snippets are stored in 'text' field of 'snippets' object.
      *

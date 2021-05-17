@@ -89,7 +89,9 @@ class SearchInDocument
                     'uid' => !empty($resultDocument->getUid()) ? $resultDocument->getUid() : $parameters['uid'],
                     'page' => $resultDocument->getPage(),
                     'snippet' => $resultDocument->getSnippets(),
-                    'highlight' => $resultDocument->getHighlightsIds()
+                    'highlight' => $resultDocument->getHighlightsIds(),
+                    // temp solution until OL update is ready
+                    'words' => $resultDocument->getHighlightsText()
                 ];
                 $output['documents'][$count] = $document;
                 $count++;

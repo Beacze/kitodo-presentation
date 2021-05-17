@@ -88,6 +88,14 @@ class Highlight
     private $height;
 
     /**
+     * The text of found highlight
+     *
+     * @var string
+     * @access private
+     */
+    private $text;
+
+    /**
      * The constructor for highlight.
      *
      * @access public
@@ -105,6 +113,7 @@ class Highlight
         $this->yEndPosition = $highlight['lry'];
         $this->width = $highlight['lrx'] - $highlight['ulx'];
         $this->height = $highlight['lry'] - $highlight['uly'];
+        $this->text = $highlight['text'];
         $this->id = $this->width . '_' . $this->height . '_' . $this->xBeginPosition . '_' . $this->yBeginPosition;
     }
 
@@ -190,5 +199,16 @@ class Highlight
     public function getHeight()
     {
         return $this->height;
+    }
+
+    /**
+     * Get the text of found highlight.
+     *
+     * @access public
+     *
+     * @return string The text of found highlight
+     */
+    public function getText() {
+        return $this->text;
     }
 }
