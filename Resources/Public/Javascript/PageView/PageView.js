@@ -350,7 +350,7 @@ dlfViewer.prototype.displayHighlightWord = function() {
 
     if (hasOwnProperty && this.fulltexts[0] !== undefined && this.fulltexts[0].url !== '' && this.images.length > 0) {
         var value = urlParams[param],
-            values = decodeURIComponent(value).split(' '),
+            values = decodeURIComponent(value).split(';'),
             fulltextData = dlfFullTextUtils.fetchFullTextDataFromServer(this.fulltexts[0].url, this.images[0]),
             fulltextDataImageTwo = undefined;
 
@@ -364,7 +364,7 @@ dlfViewer.prototype.displayHighlightWord = function() {
         var stringFeatures = fulltextDataImageTwo === undefined ? fulltextData.getStringFeatures() :
           fulltextData.getStringFeatures().concat(fulltextDataImageTwo.getStringFeatures());
         values.forEach($.proxy(function(value) {
-            var features = dlfUtils.searchFeatureCollectionForText(stringFeatures, value);
+            var features = dlfUtils.searchFeatureCollectionForCoordinates(stringFeatures, value);
             if (features !== undefined) {
                 for (var i = 0; i < features.length; i++) {
                     this.highlightLayer.getSource().addFeatures([features[i]]);

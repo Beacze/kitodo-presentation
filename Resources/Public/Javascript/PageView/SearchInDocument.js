@@ -50,7 +50,6 @@ function resetStart() {
  * @returns void
  */
 function addHighlightEffect(highlightIds) {
-    // TODO: highlight found phrase in full text - verify page?
     if (highlightIds.length > 0) {
         highlightIds.forEach(function (highlightId) {
             var targetElement = $('#' + highlightId);
@@ -147,25 +146,25 @@ function getNeededQueryParams(element) {
     queryParams.push(page);
     queryParams[page] = element['page'];
     queryParams.push('hl');
-    queryParams['hl'] = encodeURIComponent(getHighlightWords(element['words']));
+    queryParams['hl'] = encodeURIComponent(getHighlights(element['highlight']));
 
     return queryParams;
 }
 
-function getHighlightWords(text) {
-    var highlightWords = $("input[id='tx-dlf-search-in-document-query']").val();
+function getHighlights(highlight) {
+    var highlights = "";
 
-    for(var i = 0; i < text.length; i++) {
-        if (highlightWords === "") {
-            highlightWords += text[i];
+    for(var i = 0; i < highlight.length; i++) {
+        if (highlights === "") {
+            highlights += highlight[i];
         } else {
-            if(highlightWords.indexOf(text[i]) === -1) {
-                highlightWords += ' ' + text[i];
+            if(highlights.indexOf(highlight[i]) === -1) {
+                highlights += ';' + highlight[i];
             }
         }
     }
 
-    return highlightWords;
+    return highlights;
 }
 
 /**
@@ -269,9 +268,25 @@ function search() {
         });
 }
 
+function getCurrentPage() {
+    var page = 1;
+    var queryParams = getCurrentQueryParams(getBaseUrl(" "));
+
+    for(var i = 0; i < queryParams.length; i++) {
+        var queryParam = queryParams[i].split('=');
+
+        if(queryParam[0] === $("input[id='tx-dlf-search-in-document-page']").attr('name')) {
+            page = queryParam[1];
+        }
+    }
+
+    return page;
+}
+
 function addImageHighlightAfterFirstLoad(data) {
     var queryParams = getCurrentQueryParams(getBaseUrl(" "));
     var hlParameterFound = false;
+
     for(var i = 0; i < queryParams.length; i++) {
         var queryParam = queryParams[i].split('=');
 
@@ -282,19 +297,22 @@ function addImageHighlightAfterFirstLoad(data) {
     }
 
     if(!hlParameterFound && data['numFound'] > 0) {
-        var highlightWords = [];
+        var page = getCurrentPage();
+
         data['documents'].forEach(function (element, i) {
-            if (element['words'].length > 0) {
-                highlightWords.push(element['words']);
+            if(element['page'] == page) {
+                if (element['highlight'].length > 0) {
+                    if(tx_dlf_viewer.map != null) {
+                        tx_dlf_viewer.displayHighlightWord(encodeURIComponent(getHighlights(element['highlight'])));
+                    } else {
+                        setTimeout(addImageHighlightAfterFirstLoad, 500, data);
+                    }
+                }
+                addHighlightEffect(element['highlight'])
             }
         });
-
-        if(highlightWords.length > 0) {
-            tx_dlf_viewer.displayHighlightWord(encodeURIComponent(getHighlightWords(highlightWords)));
-        }
     }
 }
-
 
 function clearSearch() {
     $('#tx-dlf-search-in-document-results ul').remove();
